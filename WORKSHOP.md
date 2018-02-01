@@ -48,11 +48,19 @@ terre & mer
 
 ---
 
+La Fourchette
+
+---
+
+Time consuming
+
+---
+
 Help me with a Web App
 
 ---
 
-Find the best deal for a French starred restaurant
+Find the best deal for France located starred restaurant
 
 ---
 
@@ -129,7 +137,7 @@ console.log(michelin.get());
 
 ---
 
-1. scrape list of French starred restaurants
+1. scrape list of France located starred restaurants
 1. store the list into JSON file, nosql database (like redis, mongodb...)
 
 ---
@@ -176,7 +184,7 @@ MVP
 
 ---
 
-List French starred restaurant and their current deals
+List France located starred restaurant and their current deals
 
 ---
 

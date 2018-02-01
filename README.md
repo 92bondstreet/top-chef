@@ -46,7 +46,7 @@ Thanks the [LaFourchette](https://www.lafourchette.com), you can book a restaura
 
 ## Objective - Workshop in 1 sentence
 
-**Get the current deal for a French Michelin starred restaurants.**
+**Get the current deal for a France located Michelin starred restaurants.**
 
 ## How to do that?
 
@@ -144,7 +144,7 @@ console.log(michelin.get());
 
 Some things to do:
 
-1. scrape list of French starred restaurants
+1. scrape list of France located starred restaurants
 1. store the list into JSON file, nosql database (like redis, mongodb...)
 1. create a node module that return the list
 
@@ -171,7 +171,7 @@ Some things to do:
 
 MVP to do:
 
-1. **List French starred restaurant and their current deals**
+1. **List France located starred restaurant and their current deals**
 
 Next features:
 
