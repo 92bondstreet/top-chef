@@ -2,6 +2,7 @@ const cheerio = require('cheerio');
 const fetch = require('node-fetch');
 const fs = require('fs');
 
+// parameters to fetch the url
 const fetchParameters = { method: 'GET',
 headers: {},
 follow: 20,
@@ -12,6 +13,7 @@ body: null,
 agent: null
 }
 
+//get all the liks to the pages of each resaurants
 async function getRestaurantLinksFrom(url)
 {
   const response = await fetch(url, fetchParameters);
@@ -36,6 +38,7 @@ async function getRestaurantLinksFrom(url)
   return links;
 }
 
+//get the information of a restaurant from an url and put everything together in an object
 async function getResaurantFrom(url)
 {
   const Restaurant = (name, addresse, postalCode, locality, price, url, urlImage) => {
@@ -127,12 +130,14 @@ async function getResaurantFrom(url)
 
   if(error > 0) console.log("error: " + error + " on url: " + url);
 
-  return Restaurant(name, address, postalCode, locality, price, url, urlImage);;
+  return Restaurant(name, address, postalCode, locality, price, url, urlImage);
 }
 
-//important consts of the prgm
+//important consts of the programe
+//baseUrl is the basic url to which we have to add "page-n" n is in the range 1 to 35
 const baseUrl = "https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin/";
 const nbrPages = 35;
+
 
 async function main()
 {
@@ -150,7 +155,7 @@ async function main()
   //all the arrays are merged into one big array: it's a list of all the urls of each restaurants
   const restaurantLinks = restaurantLinksArrays
     .filter(arr => arr != undefined && arr != [])
-      .reduce((accumulator, currentArray) => {return accumulator.concat(currentArray);}, []);
+      .reduce((accumulator, currentArray) => accumulator.concat(currentArray), []);
 
   console.log("get the data of each restaurants...")
 
