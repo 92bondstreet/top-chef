@@ -167,7 +167,7 @@ async function main()
 
   //format the objects in JSON to write them in a file
   const jsonObj = restaurantArray.map(restaurant => JSON.stringify(restaurant, null, 4));
-  const contentForFile = "{\n" + jsonObj.join(",\n") + "\n}";
+  const contentForFile = "[\n" + jsonObj.join(",\n") + "\n]";
 
   console.log("saving to file");
 
