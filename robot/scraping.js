@@ -6,7 +6,7 @@ const fs = require('fs');
 const fetchParameters = { method: 'GET',
 headers: {},
 follow: 20,
-timeout: 0,
+timeout: 10000,
 compress: true,
 size: 0,
 body: null,
@@ -20,16 +20,14 @@ async function getRestaurantLinksFrom(url)
   const html = await response.text();
   const $ = await cheerio.load(html);
 
-  //get the sub-divs of the div which contains the urls of each cities
+  //get the links of class poi-card-link
   const aTag = $("a.poi-card-link");
 
-  //get ride of all the divs which are not
+  //get rid of all the divs which are not links
   const filteraTag = aTag.filter(d => aTag[d].name == 'a');
-
 
   const links = [];
 
-  //console.log(divs);
   for (let i = 0; i < filteraTag.length; i++)
   {
     links.push("https://restaurant.michelin.fr" + filteraTag[i].attribs.href)
@@ -38,9 +36,11 @@ async function getRestaurantLinksFrom(url)
   return links;
 }
 
+
 //get the information of a restaurant from an url and put everything together in an object
 async function getResaurantFrom(url)
 {
+  //the Restaurant object
   const Restaurant = (name, addresse, postalCode, locality, price, url, urlImage) => {
     return {
       "name": name,
@@ -53,84 +53,107 @@ async function getResaurantFrom(url)
     }
   }
 
-  const getDataFrom = selecteur => $(selecteur)[0].children[0].data;
+  let isTimeout = true;
 
-  const response = await fetch(url, fetchParameters);
-  const html = await response.text();
-  const $ = await cheerio.load(html);
+  while(isTimeout)
+  {
+    try
+    {
+      const getDataFrom = selecteur => $(selecteur)[0].children[0].data;
 
-  let name = undefined;
-  let address = undefined;
-  let postalCode = undefined;
-  let locality = undefined;
-  let price = undefined;
-  let urlImage = undefined;
+      const response = await fetch(url, fetchParameters);
+      const html = await response.text();
+      const $ = await cheerio.load(html);
 
-  let error = 0;
+      let name = undefined;
+      let address = undefined;
+      let postalCode = undefined;
+      let locality = undefined;
+      let price = undefined;
+      let urlImage = undefined;
 
-  try
-  {
-    name = getDataFrom("h1");
-  }
-  catch (e)
-  {
-    name = null;
-    error += 2;
-  }
+      let error = 0;
 
-  try
-  {
-    address = getDataFrom("div.thoroughfare");
-  }
-  catch (e)
-  {
-    address = null;
-    error += 4;
-  }
+      try
+      {
+        name = getDataFrom("h1");
+      }
+      catch (e)
+      {
+        name = null;
+        console.log("ERROR: cannot get name from " + url);
+      }
 
-  try
-  {
-    postalCode = getDataFrom("span.postal-code");
-  }
-  catch (e)
-  {
-    postalCode = null;
-    error += 8;
-  }
+      try
+      {
+        address = getDataFrom("div.thoroughfare");
+      }
+      catch (e)
+      {
+        address = null;
+        console.log("ERROR: cannot get addresse from " + url);
+      }
 
-  try
-  {
-    locality = getDataFrom("span.locality");
-  }
-  catch (e)
-  {
-    locality = null;
-    error += 16;
-  }
+      try
+      {
+        postalCode = getDataFrom("span.postal-code");
+      }
+      catch (e)
+      {
+        postalCode = null;
+        console.log("ERROR: cannot get postalCode from " + url);
+      }
+      try
+      {
+        locality = getDataFrom("span.locality");
+      }
+      catch (e)
+      {
+        locality = null;
+        console.log("ERROR: cannot get locality from " + url);
+      }
 
-  try
-  {
-    price = getDataFrom("div.poi_intro-display-prices").trim();
-  }
-  catch (e)
-  {
-    price = null;
-    error += 32;
-  }
+      try
+      {
+        price = getDataFrom("div.poi_intro-display-prices").trim();
+      }
+      catch (e)
+      {
+        price = null;
+        console.log("ERROR: cannot get price from " + url);
+      }
 
-  try
-  {
-    urlImage = $("img")[1].attribs['data-src'];
-  }
-  catch (e)
-  {
-    urlImage = null;
-    error += 64;
-  }
+      try
+      {
+        urlImage = $("img")[1].attribs['data-src']; // the image is always the second on the page
+        //when there is no image for the restaurant the index 1 is a standart michelin image (which is ok when there is nothing)
+      }
+      catch (e)// just in case there is no images at all on the web page
+      {
+        urlImage = null;
+        console.log("ERROR: cannot get image from " + url);
+      }
 
-  if(error > 0) console.log("error: " + error + " on url: " + url);
+      isTimeout = false;
 
-  return Restaurant(name, address, postalCode, locality, price, url, urlImage);
+      return Restaurant(name, address, postalCode, locality, price, url, urlImage);
+    }
+    catch(e)
+    {
+      if(e.type === "request-timeout")
+      {
+        console.log("TIMEOUT at url : " + url);
+        console.log("re-run querry at this url\n");
+      }
+      else
+      {
+        console.log(e.text);
+        console.log("this error is not a timeout\nThe querry will not be run a second time");
+        isTimeout = false;
+      }
+    }
+  }
+  
 }
 
 //important consts of the programe
@@ -143,7 +166,7 @@ async function main()
 {
   console.log("get the url of each restaurant...");
   const promiseUrls = [];
-  for(let i = 0; i< nbrPages; i++)
+  for(let i = 1; i<= nbrPages; i++)
   {
     const url = baseUrl + "page-" + i.toString();
     promiseUrls.push(getRestaurantLinksFrom(url));
